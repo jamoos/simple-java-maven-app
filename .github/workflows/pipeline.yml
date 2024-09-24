@@ -15,7 +15,7 @@ jobs:
       - name: Bump version
         id: bump-version
         run: |
-          current_version=$(xmllint --xpath '/*[local-name()="project"]/*[local-name()="version"]/text()' "pom.xml")
+          current_version=$(grep -m1 '<version>.*</version>' pom.xml | sed -E 's/<\/?version>//g')
           IFS='.' read -r major minor patch <<< "$current_version"
           new_patch=$((patch + 1))
           new_version="$major.$minor.$new_patch"
