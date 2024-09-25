@@ -79,8 +79,8 @@ jobs:
       - name: Pull and run Docker image
         env:
           VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
-          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
-          ECR_REPOSITORY: simple-java-maven-app  
+          REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
+          REPOSITORY: simple-java-maven-app  
           EXPECTED_OUTPUT: "Hello World!"
         run: |
           docker pull $REGISTRY/$REPOSITORY:$VERSION
