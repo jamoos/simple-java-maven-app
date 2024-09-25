@@ -28,48 +28,29 @@ jobs:
           name: pom.xml
           path: pom.xml
   
-  # build-artifact:
-  #   runs-on: ubuntu-24.04
-  #   needs: bump-version 
-  #   steps:
-  #     - name: Checkout branch
-  #       uses: actions/checkout@v4
-  #     - name: Download build.gradle.kts artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build.gradle.kts
-  #         path: .
-  #     - name: Build JAR with Gradle
-  #       run: ./gradlew jar
-  #     - name: Upload JAR artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: helloworld-${{ needs.bump-version.outputs.NEW_VERSION }}.jar
-  #         path: build/libs/*.jar
-  #
-  # build-docker:
-  #   runs-on: ubuntu-24.04
-  #   needs: bump-version
-  #   steps:
-  #     - name: Checkout branch
-  #       uses: actions/checkout@v4
-  #     - name: Download build.gradle.kts artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build.gradle.kts
-  #         path: .
-  #     - name: Build and push Docker image
-  #       env: 
-  #         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  #         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} 
-  #         VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }} 
-  #       run: |
-  #         echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  #         docker build -t jamoos/graal:latest \
-  #                       -t jamoos/graal:$VERSION .
-  #         docker push jamoos/graal:latest
-  #         docker push jamoos/graal:$VERSION
-  #
+  build-docker:
+    runs-on: ubuntu-24.04
+    needs: bump-version
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Download pom.xml artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pom.xml
+          path: .
+      - name: Build and push Docker image
+        env: 
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} 
+          VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }} 
+        run: |
+          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          docker build -t jamoos/maven:latest \
+                        -t jamoos/maven:$VERSION .
+          docker push jamoos/maven:latest
+          docker push jamoos/maven:$VERSION
+
   # test-docker:
   #   runs-on: ubuntu-24.04
   #   needs: [bump-version, build-docker]
