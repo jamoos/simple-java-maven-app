@@ -1,4 +1,7 @@
 name: Simple Pipeline :)
+permissions:
+  id-token: write 
+  contents: read 
 
 on:
   push:
@@ -42,7 +45,6 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} 
           aws-region: ${{ secrets.AWS_REGION }} 
 
       - name: ECR Login
@@ -52,7 +54,7 @@ jobs:
         env:
           VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
-          ECR_REPOSITORY: github-actions-repo  
+          ECR_REPOSITORY: ${{ github.repository }}  
           IMAGE_TAG: ${{ env.VERSION }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -76,7 +78,7 @@ jobs:
           VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
           AWS_ACCOUNT_ID: ${{ fromJSON(secrets.AWS_ROLE_ARN).accountId }}
           ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
-          ECR_REPOSITORY: github-actions-repo  
+          ECR_REPOSITORY: ${{ github.repository }} 
           EXPECTED_OUTPUT: "Hello World!"
         run: |
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION
