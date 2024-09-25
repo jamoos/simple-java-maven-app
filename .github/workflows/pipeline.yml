@@ -39,17 +39,24 @@ jobs:
         with:
           name: pom.xml
           path: .
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} 
+          aws-region: ${{ secrets.AWS_REGION }} 
+
+      - name: ECR Login
+        uses: aws-actions/amazon-ecr-login@v1
+
       - name: Build and push Docker image
-        env: 
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} 
-          VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }} 
+        env:
+          VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
+          ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
+          ECR_REPOSITORY: github-actions-repo  
+          IMAGE_TAG: ${{ env.VERSION }}
         run: |
-          echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          docker build -t jamoos/maven:latest \
-                        -t jamoos/maven:$VERSION .
-          docker push jamoos/maven:latest
-          docker push jamoos/maven:$VERSION
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
   test-docker:
     runs-on: ubuntu-24.04
