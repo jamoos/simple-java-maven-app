@@ -51,43 +51,43 @@ jobs:
           docker push jamoos/maven:latest
           docker push jamoos/maven:$VERSION
 
-  # test-docker:
-  #   runs-on: ubuntu-24.04
-  #   needs: [bump-version, build-docker]
-  #   steps:
-  #     - name: Pull and run Docker image
-  #       env:
-  #         VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
-  #         EXPECTED_OUTPUT: "Mr. K says: \"World, Hold on!\""
-  #       run: |
-  #         docker pull jamoos/graal:$VERSION
-  #         ACTUAL_OUTPUT=$(docker run --rm jamoos/graal:$VERSION)
-  #         echo "Actual Output:"
-  #         echo $ACTUAL_OUTPUT
-  #
-  #         if [ "$ACTUAL_OUTPUT" = "$EXPECTED_OUTPUT" ]; then
-  #           echo "Test passed: Output matches expected value."
-  #         else
-  #           echo "Test failed: Output does not match expected value."
-  #           echo "Expected: $EXPECTED_OUTPUT"
-  #           echo "Actual: $ACTUAL_OUTPUT"
-  #           exit 1 
-  #         fi
-  # commit-new-version: 
-  #   runs-on: ubuntu-24.04
-  #   needs: [bump-version, build-artifact, build-docker, test-docker]
-  #   if: needs.test-docker.result == 'success' 
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Download build.gradle.kts artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build.gradle.kts
-  #         path: .
-  #     - name: Merge version bump branch into master
-  #       run: |
-  #         git config user.name "github-actions[bot]"
-  #         git config user.email "<>"
-  #         git add build.gradle.kts
-  #         git commit -m "Bump version to ${{ needs.bump-version.outputs.NEW_VERSION }} [skip ci]"
-  #         git push
+  test-docker:
+    runs-on: ubuntu-24.04
+    needs: [bump-version, build-docker]
+    steps:
+      - name: Pull and run Docker image
+        env:
+          VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
+          EXPECTED_OUTPUT: "Hello World!"
+        run: |
+          docker pull jamoos/maven:$VERSION
+          ACTUAL_OUTPUT=$(docker run --rm jamoos/maven:$VERSION)
+          echo "Actual Output:"
+          echo $ACTUAL_OUTPUT
+
+          if [ "$ACTUAL_OUTPUT" = "$EXPECTED_OUTPUT" ]; then
+            echo "Test passed: Output matches expected value."
+          else
+            echo "Test failed: Output does not match expected value."
+            echo "Expected: $EXPECTED_OUTPUT"
+            echo "Actual: $ACTUAL_OUTPUT"
+            exit 1 
+          fi
+  commit-new-version: 
+    runs-on: ubuntu-24.04
+    needs: [bump-version, build-docker, test-docker]
+    if: needs.test-docker.result == 'success' 
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download pom.xml artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pom.xml
+          path: .
+      - name: Merge version bump branch into master
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "<>"
+          git add pom.xml
+          git commit -m "Bump version to ${{ needs.bump-version.outputs.NEW_VERSION }} [skip ci]"
+          git push
