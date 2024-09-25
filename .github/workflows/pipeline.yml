@@ -15,10 +15,10 @@ jobs:
       - name: Bump version
         id: bump-version
         run: |
-          current_version=$(grep -m1 '<version>.*</version>' pom.xml | sed -E 's/<\/?version>//g')
+          current_version=$(grep -m1 '<version>.*</version>' pom.xml | sed -E 's/<\/?version>//g' | tr -d ' '| tr -d '\n')
           IFS='.' read -r major minor patch <<< "$current_version"
           new_patch=$((patch + 1))
-          new_version="$major.$minor.$new_patch"
+          new_version=$(echo "$major.$minor.$new_patch" | sed -E 's/ //'| tr -d '\n')
           sed -i -E "s/<version>$current_version<\/version>/<version>$new_version<\/version>/" pom.xml
 
           echo "NEW_VERSION=$new_version" >> $GITHUB_OUTPUT
