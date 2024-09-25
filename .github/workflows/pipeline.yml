@@ -57,7 +57,7 @@ jobs:
           VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
           ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
           ECR_REPOSITORY: ${{ github.repository }}  
-          IMAGE_TAG: ${{ env.VERSION }}
+          IMAGE_TAG: ${{ needs.bump-version.outputs.NEW_VERSION }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
