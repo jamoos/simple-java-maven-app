@@ -51,6 +51,8 @@ jobs:
           role-to-assume: arn:aws:iam::010438509007:role/github-actions-ecr
       - name: ECR Login
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: 010438509007.dkr.ecr.eu-north-1.amazonaws.com
 
       - name: Build and push Docker image
         env:
@@ -75,6 +77,8 @@ jobs:
       - name: ECR Login
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: 010438509007.dkr.ecr.eu-north-1.amazonaws.com
       
       - name: Pull and run Docker image
         env:
