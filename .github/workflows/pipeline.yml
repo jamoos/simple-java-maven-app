@@ -40,13 +40,13 @@ jobs:
           name: pom.xml
           path: .
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }} 
           aws-region: ${{ secrets.AWS_REGION }} 
 
       - name: ECR Login
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
         env:
@@ -62,13 +62,25 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [bump-version, build-docker]
     steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }} 
+
+      - name: ECR Login
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Pull and run Docker image
         env:
           VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
+          AWS_ACCOUNT_ID: ${{ fromJSON(secrets.AWS_ROLE_ARN).accountId }}
+          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
+          ECR_REPOSITORY: github-actions-repo  
           EXPECTED_OUTPUT: "Hello World!"
         run: |
-          docker pull jamoos/maven:$VERSION
-          ACTUAL_OUTPUT=$(docker run --rm jamoos/maven:$VERSION)
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION
+          ACTUAL_OUTPUT=$(docker run --rm $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION)
           echo "Actual Output:"
           echo $ACTUAL_OUTPUT
 
@@ -80,6 +92,7 @@ jobs:
             echo "Actual: $ACTUAL_OUTPUT"
             exit 1 
           fi
+  
   commit-new-version: 
     runs-on: ubuntu-24.04
     needs: [bump-version, build-docker, test-docker]
