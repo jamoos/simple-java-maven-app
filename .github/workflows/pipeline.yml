@@ -48,7 +48,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ secrets.AWS_REGION }} 
-          logLevel: DEBUG
 
       - name: ECR Login
         uses: aws-actions/amazon-ecr-login@v2
