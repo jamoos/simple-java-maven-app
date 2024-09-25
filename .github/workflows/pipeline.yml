@@ -73,18 +73,21 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }} 
 
       - name: ECR Login
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
+      
       - name: Pull and run Docker image
         env:
           VERSION: ${{ needs.bump-version.outputs.NEW_VERSION }}
           AWS_ACCOUNT_ID: ${{ fromJSON(secrets.AWS_ROLE_ARN).accountId }}
-          ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
-          ECR_REPOSITORY: ${{ github.repository }} 
+          # ECR_REGISTRY: ${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com 
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }} 
+          # ECR_REPOSITORY: ${{ github.repository }} 
+          REPOSITORY: ${{ github.repository }} 
           EXPECTED_OUTPUT: "Hello World!"
         run: |
-          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION
-          ACTUAL_OUTPUT=$(docker run --rm $ECR_REGISTRY/$ECR_REPOSITORY:$VERSION)
+          docker pull $REGISTRY/$REPOSITORY:$VERSION
+          ACTUAL_OUTPUT=$(docker run --rm $REGISTRY/$REPOSITORY:$VERSION)
           echo "Actual Output:"
           echo $ACTUAL_OUTPUT
 
