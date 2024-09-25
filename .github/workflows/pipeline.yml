@@ -34,6 +34,8 @@ jobs:
   build-docker:
     runs-on: ubuntu-24.04
     needs: bump-version
+    env:
+      ACTIONS_STEP_DEBUG: true
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
